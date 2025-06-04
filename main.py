@@ -4,16 +4,18 @@ from rag import LANGUAGE_MODEL
 import eel, ollama, chromadb
 import base64, io
 
-eel.init("web")
+COLLECTION_NAME = "pdf-chunks"
 
 chroma = chromadb.PersistentClient(path = "chromadb-dev")
-exists = "rfp-test" in [x.name for x in chroma.list_collections()]
+exists = COLLECTION_NAME in [x.name for x in chroma.list_collections()]
 
 if not exists:
-  collection = chroma.create_collection("rfp-test")
+  collection = chroma.create_collection(COLLECTION_NAME)
 else:
-  chroma.delete_collection("rfp-test")
-  collection = chroma.create_collection("rfp-test")
+  chroma.delete_collection(COLLECTION_NAME)
+  collection = chroma.create_collection(COLLECTION_NAME)
+
+eel.init("web")
 
 @eel.expose
 def process_base64_file(base64_string):
@@ -34,8 +36,8 @@ def process_and_answer_question(question):
   system_prompt = f"You must provide responses based on the context provided. Do not use any general, outside knowledge. Be succinct. Context: {context}" 
 
   print("Context given:", context)
-
   print("Generating answer...")
+  
   response = ollama.chat(
     model = LANGUAGE_MODEL,
     messages=[
